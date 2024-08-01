@@ -1,5 +1,25 @@
 $fn = 120;
 
+function involute_point(
+    pitch_diameter, pressure_angle, angle
+) = let(
+    pitch_radius = pitch_diameter/2,
+    base_radius = pitch_radius * cos(pressure_angle),
+    circle_angle = angle + pressure_angle,
+    circle_point = pitch_radius * [-sin(circle_angle), cos(circle_angle)],
+    zero_rope_length = pitch_radius * sin(pressure_angle),
+    rope_length = zero_rope_length + base_radius * angle * PI / 180,
+    rope_direction = [cos(circle_angle), sin(circle_angle)]
+) circle_point + rope_length * rope_direction;
+
+function involute_arc(
+    pitch_diameter, pressure_angle, angle_range
+) = concat(
+    [[0,0]], 
+    [for (angle=angle_range) 
+        involute_point(pitch_diameter, pressure_angle, angle)]
+);
+
 module spoked(d, w) {
     difference() {
         circle(d=d);
@@ -73,6 +93,7 @@ module notch(d, h, d_notch, l_notch, rounding=1.5) {
     }
 }
 
+/*
 rotate(30)
 driven_pegs(50, 2, 6, 3, 6);
 translate([44.5,0,5])
@@ -80,3 +101,6 @@ rotate(180-0)
 color("green")
 notch(50, 2, 4, 10);
 color("red") driving_spring(50, 1.8, 3);
+*/
+
+polygon(involute_arc(50, 25, [-25:50]));
