@@ -166,18 +166,38 @@ module base() {
         cylinder(d=2.5, h=10);
 }
 
-rotate(30)
-translate([0,0,2])
-driven_pegs(50, 2, 6, 3, 6);
-translate([140/PI,0,9])
-rotate(180)
-mirror([0,0,1])
-color("green")
-notched_gear();
+module demo() {
+    rotate(30)
+    translate([0,0,2])
+    driven_pegs(50, 2, 6, 3, 6);
+    
+    translate([140/PI,0,9])
+    rotate(180)
+    mirror([0,0,1])
+    color("green")
+    notched_gear();
 
-translate([0,0,2])
-color("red") driving_spring(50, 1.8, 3);
+    translate([0,0,2])
+    color("red") driving_spring(50, 1.8, 3);
 
-color("blue") pegged_gear();
+    color("blue") pegged_gear();
 
-base();
+    base();
+}
+
+module base_and_notch() {
+    translate([0,0,1])
+    base();
+    translate([0,44,0])
+    notched_gear();
+}
+
+module pegged_side() {
+    driven_pegs(50, 2, 6, 3, 6);
+    translate([50,0,0])
+    driving_spring(50, 1.8, 3);
+    translate([35,60,0])
+    pegged_gear();
+}
+
+pegged_side();
