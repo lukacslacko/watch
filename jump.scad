@@ -34,7 +34,9 @@ module one_tooth(pitch_diameter, pressure_angle, tooth_width_angle) {
     }
 }
 
-module gear(n_tooth, pitch, addendum, dedendum, pressure_angle) {
+module gear(
+    n_tooth, pitch, addendum, dedendum, pressure_angle, d_inner=0
+) {
     pitch_diameter = pitch * n_tooth / PI;
     difference() {
         union() {
@@ -47,16 +49,19 @@ module gear(n_tooth, pitch, addendum, dedendum, pressure_angle) {
             }
             circle(d=pitch_diameter - 2*dedendum);
         }
-        spoke_holes(pitch_diameter - 2*dedendum, pitch);
+        spoke_holes(pitch_diameter - 2*dedendum, pitch, d_inner);
     }
 }
 
-module spoke_holes(d, w) {
+module spoke_holes(d, w, d_inner=0) {
     for (a = [90:90:360]) rotate(a) {
         offset(w) offset(-w)
-        intersection() {
-            translate([w/2, w/2]) square(d);
-            circle(d=d-2*w);
+        difference() {
+            intersection() {
+                translate([w/2, w/2]) square(d);
+                circle(d=d-2*w);
+            }
+            circle(d=d_inner);
         }
     }
 }
@@ -68,8 +73,18 @@ module spoked(d, w) {
     }
 }
 
+module spoked_with_drivers(d, w, rounding=1.45) {
+    offset(rounding) offset(-2*rounding) offset(rounding)
+    union() {
+        spoked(d, w);
+        for (a=[90:90:360]) rotate(a)
+        translate([d/2,0])
+        square([4*w, w], center=true);
+    }
+}
+
 module pegs(d, h, n_peg, d_peg, h_peg) {
-    linear_extrude(h) spoked(d, d_peg);
+    linear_extrude(h) spoked_with_drivers(d, d_peg);
     for (i = [1 : n_peg]) {
         rotate(360 * i / n_peg) 
         translate([d/2 - d_peg/2, 0, 0])
@@ -77,41 +92,10 @@ module pegs(d, h, n_peg, d_peg, h_peg) {
     }
 }
 
-module driven_pegs(d, h, n_peg, d_peg, h_peg, rounding=1.45) {
+module pegs_with_driver() {
     difference() {
-        union() {
-            linear_extrude(h) {
-                offset(rounding) offset(-2*rounding) offset(rounding)
-                for (a=[45:90:360]) rotate(a)
-                union() {
-                    difference() {
-                        circle(d=d);
-                        circle(d=d-2*d_peg);
-                    }
-                    intersection() {
-                        circle(d=d);
-                        translate([d/2-d_peg,0])
-                        square([3*d_peg, d_peg], center=true);
-                    }
-                }
-            }
-            translate([0,0,h]) pegs(d, h, n_peg, d_peg, h_peg);
-        }
-        cylinder(d=3, h=20, center=true);
-    }
-}
-
-module driving_spring(d, h, d_peg) {
-    linear_extrude(h) {
-        difference() {
-            union() {
-                circle(d=3*d_peg);
-                for (a=[0, 90]) rotate(a) {
-                    square([d-3*d_peg, 1], center=true);
-                }
-            }
-            square(1.5*d_peg, center=true);
-        }
+        pegs(50, 2, 6, 3, 6);
+        cylinder(d=3, h=10, center=true);
     }
 }
 
@@ -124,19 +108,19 @@ module notch(d, h, d_notch, l_notch, rounding=1.5) {
             intersection() {
                 circle(d=d);
                 offset(d_notch)
-                translate([d/2, 0, 0])
-                square([l_notch * 2, d_notch], center=true);                
+                translate([d/2, d_notch/2, 0])
+                square([l_notch * 2, 2*d_notch], center=true);                
             }
         }
-        translate([d/2, 0, 0])
-        square([l_notch * 2, d_notch], center=true);
+        translate([d/2, d_notch/2, 0])
+        square([l_notch * 2, 2*d_notch], center=true);
     }
 }
 
 module notched_gear() {
     difference() {
         union() {
-            linear_extrude(9)
+            linear_extrude(7)
             gear(10, 4, 1, 1.5, 25);
             notch(50, 2, 4, 10);
         }
@@ -148,9 +132,10 @@ module pegged_gear() {
     difference() {
         union() {
             linear_extrude(2)
-            gear(60, 4, 1, 1.5, 25);
-            translate([0,0,2])
-            cube([4.4, 4.4, 4], center=true);
+            gear(60, 4, 1, 1.5, 25, 25);
+            for (a=[90:90:360]) rotate(a) {
+                translate([28,0]) cylinder(d=3, h=4);
+            }
         }
         cylinder(d=3, h=20, center=true);
     }
@@ -169,35 +154,24 @@ module base() {
 module demo() {
     rotate(30)
     translate([0,0,2])
-    driven_pegs(50, 2, 6, 3, 6);
+    pegs_with_driver();
     
-    translate([140/PI,0,9])
+    translate([140/PI,0,7])
     rotate(180)
     mirror([0,0,1])
     color("green")
     notched_gear();
-
-    translate([0,0,2])
-    color("red") driving_spring(50, 1.8, 3);
 
     color("blue") pegged_gear();
 
     base();
 }
 
-module base_and_notch() {
-    translate([0,0,1])
-    base();
-    translate([0,44,0])
-    notched_gear();
-}
+// demo();
 
-module pegged_side() {
-    driven_pegs(50, 2, 6, 3, 6);
-    translate([50,0,0])
-    driving_spring(50, 1.8, 3);
-    translate([35,60,0])
-    pegged_gear();
-}
-
-pegged_side();
+// base();
+translate([45, 50, 0])
+pegs_with_driver();
+translate([70,0,0])
+notched_gear();
+pegged_gear();
