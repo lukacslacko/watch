@@ -29,10 +29,15 @@ module wheel_tooth(a, h) {
 module wheel() {
     n = 9;
     difference() {
-        cylinder(d=40, h=15, center=true);
-        cylinder(d=35, h=20, center=true);
+        cylinder(d=40, h=12, center=true);
+        cylinder(d=36, h=20, center=true);
         for (i=[1:n]) rotate(360*i/n)
         wheel_tooth(7,8);
+    }
+    translate([0,0,-12/2])
+    difference() {
+        linear_extrude(2) spoked(40, 3, 12);
+        cube(5, center=true);
     }
 }
 
@@ -63,9 +68,13 @@ module balance() {
     wing();
 }
 
-/*
-translate([0,12,40])
-rotate([90,0,0]) rotate(-25) wheel();
-*/
-rotate(0)
-balance();
+
+module demo() {
+    translate([0,12,40])
+    rotate([90,0,0]) rotate(-9) wheel();
+
+    rotate(60)
+    balance();
+}
+
+wheel();
