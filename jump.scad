@@ -99,6 +99,20 @@ module pegs_with_driver() {
     }
 }
 
+module unpegged() {
+    difference() {
+        circle(d=50);
+        for (a=[-0:10:60]) {
+            rotate(a)
+            translate([-140/PI,0])
+            rotate(-30+a/6)
+            translate([50-3/2,0]) #circle(d=3);
+        }
+    }
+}
+
+unpegged();
+
 module notch(d, h, d_notch, l_notch, rounding=1.5) {
     linear_extrude(h)
     offset(rounding) offset(-2*rounding) offset(rounding)
@@ -170,8 +184,15 @@ module demo() {
 // demo();
 
 // base();
+
+/*
 translate([45, 50, 0])
 pegs_with_driver();
+*/
+
+/*
 translate([70,0,0])
 notched_gear();
-pegged_gear();
+*/
+
+// pegged_gear();
