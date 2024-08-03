@@ -1,24 +1,6 @@
 $fn = 120;
 
-module spoke_holes(d, w, d_inner=0) {
-    for (a = [90:90:360]) rotate(a) {
-        offset(w) offset(-w)
-        difference() {
-            intersection() {
-                translate([w/2, w/2]) square(d);
-                circle(d=d-2*w);
-            }
-            circle(d=d_inner);
-        }
-    }
-}
-
-module spoked(d, w, d_inner=0) {
-    difference() {
-        circle(d=d);
-        spoke_holes(d, w, d_inner);
-    }
-}
+use <gear.scad>
 
 module wheel_tooth(a, h) {
     rotate([90,0,0])
@@ -68,13 +50,78 @@ module balance() {
     wing();
 }
 
-
-module demo() {
-    translate([0,12,40])
-    rotate([90,0,0]) rotate(-9) wheel();
-
-    rotate(60)
-    balance();
+module axle() {
+    translate([0,0,10])
+    cube([4.6, 4.6, 20], center=true);
+    cylinder(d=7, h=16);
+    intersection() {
+        union() {
+            cylinder(d1=0, d2=20, h=10);
+            translate([0,0,10])
+            cylinder(d=20, h=10);
+        }
+        linear_extrude(13.5, convexity=10) gear(9);
+    }
 }
 
-wheel();
+module winder_gear() {
+    difference() {
+        linear_extrude(6.5, convexity=10) gear(45, d_inner=20);
+        cube([7.5,7.5,50], center=true);
+    }
+}
+
+module winder_axle() {
+    translate([0,0,9])
+    cube([7, 7, 7], center=true);
+    cylinder(d=7, h=20);
+}
+
+module front_plate() {
+    difference() {
+        union() {
+            cube([130,20,1.5], center=true);
+            translate([0,18,0])
+            cube([20,30,1.5], center=true);
+            translate([-10,28,0])
+            cube([20,4,30]);
+            translate([-59,-40,-1.5/2])
+            cube([4,50,30]);
+            translate([55,-40,-1.5/2])
+            cube([4,50,30]);
+            translate([-60,-43,-1.5/2])
+            cube([120,4,30]);
+            translate([0,-40,19])
+            rotate([-90,0,0])
+            cylinder(d1=10, d2=0, h=7);
+        }
+        cylinder(d=7.5, h=10, center=true);
+        translate([54*2/PI,0,0]) cylinder(d=7.5, h=10, center=true);
+        translate([0,28,19])
+        rotate([90,0,0])
+        cylinder(d=3.5, h=20, center=true);
+    }
+}
+
+
+module demo() {
+    translate([0,12,75/2])
+    rotate([90,0,0]) {
+        color("green")
+        rotate(0) wheel();
+        translate([0,0,-22])
+        axle();
+        color("blue")
+        translate([54*2/PI,0,6.5-22]) winder_gear();
+        color("pink")
+        translate([54*2/PI,0,-22]) winder_axle();
+
+        translate([0,0,-7])
+        color("grey") front_plate();
+    }
+    color("red")
+    rotate(100)
+#    balance();
+}
+
+winder_gear();
