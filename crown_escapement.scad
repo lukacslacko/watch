@@ -2,19 +2,24 @@ $fn = 120;
 
 use <gear.scad>
 
-module wheel_tooth(a, h) {
+module wheel_tooth(a) {
     rotate([90,0,0])
-    linear_extrude(100)
-    polygon([[-a,h],[0,0],[a,0],[a,h]]);
+    linear_extrude(2, center=true)
+    polygon([[0,0],[0,a],[-1, a], [-a/2,0]]);
 }
 
 module wheel() {
-    n = 9;
+    n = 7;
+    translate([0,0,-6])
     difference() {
-        cylinder(d=40, h=12, center=true);
-        cylinder(d=36, h=20, center=true);
+        cylinder(d=40, h=6);
+        cylinder(d=36, h=50, center=true);
+    }
+    intersection() {
+        cylinder(d=40, h=30);
         for (i=[1:n]) rotate(360*i/n)
-        wheel_tooth(7,8);
+        translate([0,20-1,0])
+        wheel_tooth(7);
     }
     translate([0,0,-12/2])
     difference() {
@@ -44,16 +49,19 @@ module balance() {
         cylinder(d1=5, d2=0, h=4);
     }
     translate([0,0,20])
-    wing();
+    wing(10);
     rotate(-100)
     translate([0,0,55])
-    wing();
+    wing(10);
 }
 
-module axle() {
-    translate([0,0,10])
-    cube([4.6, 4.6, 20], center=true);
-    cylinder(d=7, h=16);
+module axle(e=0.08) {
+    intersection() {
+        translate([0,0,11])
+        cube([5-e, 5-e, 22], center=true);
+        linear_extrude(22, scale=3/30) square(30, center=true);
+    }
+    cylinder(d=7, h=15.4);
     intersection() {
         union() {
             cylinder(d1=0, d2=20, h=10);
@@ -64,14 +72,14 @@ module axle() {
     }
 }
 
-module winder_gear() {
+module last_gear() {
     difference() {
         linear_extrude(6.5, convexity=10) gear(45, d_inner=20);
         cube([7.5,7.5,50], center=true);
     }
 }
 
-module winder_axle() {
+module last_axle() {
     translate([0,0,9])
     cube([7, 7, 7], center=true);
     cylinder(d=7, h=20);
@@ -108,20 +116,19 @@ module demo() {
     translate([0,12,75/2])
     rotate([90,0,0]) {
         color("green")
-        rotate(0) wheel();
+        rotate(-5) wheel();
         translate([0,0,-22])
         axle();
         color("blue")
-        translate([54*2/PI,0,6.5-22]) winder_gear();
+        translate([54*2/PI,0,6.5-22]) last_gear();
         color("pink")
-        translate([54*2/PI,0,-22]) winder_axle();
-
+        translate([54*2/PI,0,-22]) last_axle();
         translate([0,0,-7])
         color("grey") front_plate();
     }
     color("red")
-    rotate(100)
-#    balance();
+    rotate(100-30)
+    balance();
 }
 
-winder_gear();
+demo();
