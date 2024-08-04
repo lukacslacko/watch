@@ -26,13 +26,16 @@ module one_tooth(pitch_diameter, pressure_angle, tooth_width_angle) {
     intersection() {
         rotate(-tooth_width_angle/2) involute_arc(
             pitch_diameter, pressure_angle, 
-            [-pressure_angle:1:2*pressure_angle]);
+            [-pressure_angle:2:2*pressure_angle]);
         mirror([1,0])
         rotate(-tooth_width_angle/2) involute_arc(
             pitch_diameter, pressure_angle, 
-            [-pressure_angle:1:2*pressure_angle]);
+            [-pressure_angle:2:2*pressure_angle]);
     }
 }
+
+function d_outer(n_tooth, pitch=4, addendum=1) 
+    = 2*addendum + pitch * n_tooth / PI;
 
 module gear(
     n_tooth, 
@@ -72,5 +75,17 @@ module spoked(d, w, d_inner=0) {
     difference() {
         circle(d=d);
         spoke_holes(d, w, d_inner);
+    }
+}
+
+module wheel_and_pinion(n_wheel, n_pinion, h_wheel=2, h_pinion=6, h_axle=8, d_hole=3) {
+    difference() {
+        union() {
+            linear_extrude(h_wheel) 
+            gear(n_wheel, d_inner=d_outer(n_pinion));
+            linear_extrude(h_pinion) 
+            gear(n_pinion);
+        }
+        cylinder(d=d_hole, h=3*h_pinion, center=true);
     }
 }

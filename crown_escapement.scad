@@ -56,33 +56,40 @@ module balance() {
 }
 
 module axle(e=0.08) {
-    intersection() {
-        translate([0,0,11])
-        cube([5-e, 5-e, 22], center=true);
-        linear_extrude(22, scale=3/30) square(30, center=true);
-    }
-    cylinder(d=7, h=15.4);
-    intersection() {
+    difference() {
         union() {
-            cylinder(d1=0, d2=20, h=10);
-            translate([0,0,10])
-            cylinder(d=20, h=10);
+            intersection() {
+                translate([0,0,11])
+                cube([5-e, 5-e, 16], center=true);
+                linear_extrude(16, scale=3/30) square(30, center=true);
+            }
+            cylinder(d=7, h=8);
+            linear_extrude(6, convexity=10) gear(10);
+            cylinder(d=d_outer(10), h=1);
         }
-        linear_extrude(13.5, convexity=10) gear(9);
+        cylinder(d=3, h=4);
+    }
+}
+
+module weight_axle() {
+    difference() {
+        union() {
+            cylinder(d=10, h=25);
+            linear_extrude(6, convexity=10) gear(10);
+        }
+        cylinder(d=3, h=4);
+        translate([0,0,12])
+        rotate([90,0,0])
+        cylinder(d=3, h=30, center=true);
     }
 }
 
 module last_gear() {
-    difference() {
-        linear_extrude(6.5, convexity=10) gear(45, d_inner=20);
-        cube([7.5,7.5,50], center=true);
-    }
+    wheel_and_pinion(50, 10);
 }
 
-module last_axle() {
-    translate([0,0,9])
-    cube([7, 7, 7], center=true);
-    cylinder(d=7, h=20);
+module middle_gear() {
+    wheel_and_pinion(60, 10);
 }
 
 module front_plate() {
@@ -111,6 +118,13 @@ module front_plate() {
     }
 }
 
+module back_plate() {
+    linear_extrude(2) offset(30) square([70,50]);
+    for (p=[[0,0],[130,70]]*2/PI)
+        translate(p) cylinder(d=2.4, h=5);
+    for (p=[[60,0],[60,70]]*2/PI)
+        translate(p) cylinder(d=2.4, h=11);
+}
 
 module demo() {
     translate([0,12,75/2])
@@ -121,8 +135,6 @@ module demo() {
         axle();
         color("blue")
         translate([54*2/PI,0,6.5-22]) last_gear();
-        color("pink")
-        translate([54*2/PI,0,-22]) last_axle();
         translate([0,0,-7])
         color("grey") front_plate();
     }
@@ -131,4 +143,24 @@ module demo() {
     balance();
 }
 
-demo();
+module train() {
+    color("green")
+    translate([0,0,-2])
+    back_plate();
+    axle();
+    translate([60*2/PI,0,6])
+    mirror([0,0,1])
+    last_gear();
+    translate([60*2/PI,70*2/PI,0])
+    middle_gear();
+    translate([130*2/PI,70*2/PI,0])
+    weight_axle();
+}
+
+train();
+
+/*
+axle();
+translate([45,0,0]) last_gear();
+translate([-20,45,0]) middle_gear();
+*/
