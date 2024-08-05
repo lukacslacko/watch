@@ -75,7 +75,7 @@ module axle(e=0.08) {
     }
 }
 
-module weight_axle() {
+module straight_weight_axle() {
     difference() {
         union() {
             cylinder(d=10, h=25);
@@ -85,6 +85,25 @@ module weight_axle() {
         translate([0,0,12])
         rotate([90,0,0])
         cylinder(d=3, h=30, center=true);
+    }
+}
+
+module weight_axle(d=5) {
+    difference() {
+        union() {
+            cylinder(d=10, h=8);
+            translate([0,0,8])
+            cylinder(d1=10, d2=d, h=2);
+            translate([0,0,21])
+            cylinder(d1=d, d2=10, h=2);
+            translate([0,0,23])
+            cylinder(d1=10, d2=9.5, h=2);
+            cylinder(d=d,h=25);
+            linear_extrude(6, convexity=10) gear(10);
+        }
+        translate([0,0,29])
+        cube([1,20,20],center=true);
+        cylinder(d=3, h=4);
     }
 }
 
@@ -262,8 +281,11 @@ module demo2() {
     color("red") front_plate();
 }
 
-translate([75,0,0]) wheel();
-balance();
+weight_axle(5);
+translate([20,0,0])
+weight_axle(6.5);
+translate([40,0,0])
+weight_axle(8);
 
 /*
 axle();
