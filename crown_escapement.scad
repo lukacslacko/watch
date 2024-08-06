@@ -75,19 +75,6 @@ module axle(e=0.08) {
     }
 }
 
-module straight_weight_axle() {
-    difference() {
-        union() {
-            cylinder(d=10, h=25);
-            linear_extrude(6, convexity=10) gear(10);
-        }
-        cylinder(d=3, h=4);
-        translate([0,0,12])
-        rotate([90,0,0])
-        cylinder(d=3, h=30, center=true);
-    }
-}
-
 module weight_axle(d=5) {
     difference() {
         union() {
@@ -99,7 +86,7 @@ module weight_axle(d=5) {
             translate([0,0,23])
             cylinder(d1=10, d2=9.5, h=2);
             cylinder(d=d,h=25);
-            linear_extrude(6, convexity=10) gear(10);
+            linear_extrude(6, convexity=10) square(13, center=true);
         }
         translate([0,0,29])
         cube([1,20,20],center=true);
@@ -113,6 +100,17 @@ module last_gear() {
 
 module middle_gear() {
     wheel_and_pinion(60, 10);
+}
+
+module weight_wheel() {
+    difference() {
+        union() {
+            linear_extrude(2) gear(75, d_inner=25);
+            cylinder(d=25, h=6);
+        }
+        linear_extrude(h=30, center=true)
+        square(13.2, center=true);
+    }
 }
 
 module old_front_plate() {
@@ -149,29 +147,27 @@ WEIGHT = [130,70,0]*2/PI;
 */
 
 ESCAPE = [0,0,0];
-LAST = [0,60,0]*2/PI;
-MIDDLE = LAST + 70*2/PI*[cos(10),-sin(10),0];
-WEIGHT = MIDDLE + 70*2/PI*[cos(45),-sin(45),0];
+LAST = 60*2/PI*[cos(90), sin(90), 0];
+MIDDLE = LAST + 70*2/PI*[cos(0),sin(0),0];
+WEIGHT = MIDDLE + 85*2/PI*[cos(-30),sin(-30),0];
 
 HOLES = [
-    [-56, -41, 0],
-    [-40, 40, 0],
-    [94,40,0],
+    [-56, -40, 0],
+    [-40, 65, 0],
+    [119,65,0],
     [-30,0,0],
     [30,-15,0],
-    [56, -41, 0],
-    [94, -41, 0],
+    [56, -40, 0],
+    [119, -40, 0],
 ];
 
 module back_plate() {
     difference() {
         union() {
             linear_extrude(2) difference() {
-                translate([-60,-45]) square([158,90]);
+                front_rectangle();
                 translate([0,-33])
                 square([100,16], center=true);
-                translate([-120,-10])
-                square(60);
             }
             for (p=[ESCAPE, WEIGHT])
                 translate(p) cylinder(d=2.4, h=5);
@@ -179,7 +175,9 @@ module back_plate() {
                 translate(p) cylinder(d=2.4, h=11);
             translate([-60,-45])
             cube([112,4,8.4]);
-            for (h=HOLES) translate(h + [0,0,4.4]) cube(8, center=true);
+            for (h=HOLES) {
+                translate(h + [0,0,4.4]) cube([10,10,8], center=true);
+            }
         }
         for (h=HOLES) translate(h) cylinder(d=4.5, h=30, center=true);
     }
@@ -188,8 +186,8 @@ module back_plate() {
 module front_grid() {
     intersection() {
         union() {
-            translate([-60,-45]) square([158,30]);
-            translate([118-60,-45]) square([40,90]);
+            translate([-61,-45]) square([158,30]);
+            translate([118-45,-45]) square([51,110]);
             for (e=[
                 [HOLES[0],HOLES[3]],
                 [HOLES[1],HOLES[3]],
@@ -197,7 +195,10 @@ module front_grid() {
                 [HOLES[4],ESCAPE],
                 [HOLES[3],ESCAPE],
                 [ESCAPE,LAST],
-                [HOLES[4],MIDDLE]
+                [HOLES[4],MIDDLE],
+                [LAST,MIDDLE],
+                [MIDDLE,HOLES[2]],
+                [LAST,HOLES[1]]
             ]) hull() {
                 translate(e[0]) circle(d=15);
                 translate(e[1]) circle(d=15);
@@ -208,7 +209,7 @@ module front_grid() {
 }
 
 module front_rectangle() {
-    translate([-60,-45]) square([158,90]);
+    translate([-61,-45]) square([185,115]);
 }
 
 module front_plate() {
@@ -226,19 +227,20 @@ module front_plate() {
     }
     translate([-50,-45,0])
     cube([100,6,30]);
-    translate([63,-45,0])
-    cube([4,46,22]);
-    translate([83,-45,0])
-    cube([4,46,22]);
+    translate([WEIGHT[0]-15,-45,0])
+    cube([4,47+WEIGHT[1],22]);
+    translate([WEIGHT[0]+11,-45,0])
+    cube([4,47+WEIGHT[1],22]);
     difference() {
         intersection() {
-            translate([63,-15,0])
+            translate(WEIGHT)
+            translate([-12,-14,0])
             cube([24,16,22]);
             translate(WEIGHT)
             translate([0,0,19])
             for (a=[-45,45])
             rotate([0,a,0])
-            translate([0,0,25])
+            translate([0,0,24])
             cube(50, center=true);
         }
         translate(WEIGHT)
@@ -267,6 +269,9 @@ module train() {
     last_gear();
     translate(MIDDLE)
     middle_gear();
+    translate(WEIGHT + [0,0,6])
+    mirror([0,0,1])
+    weight_wheel();
     translate(WEIGHT)
     weight_axle();
 }
@@ -281,12 +286,7 @@ module demo2() {
     color("red") front_plate();
 }
 
-weight_axle(5);
-translate([20,0,0])
-weight_axle(6.5);
-translate([40,0,0])
-weight_axle(8);
-
+front_plate();
 /*
 axle();
 translate([45,0,0]) last_gear();
