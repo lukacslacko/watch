@@ -68,7 +68,7 @@ module axle(e=0.08) {
                 linear_extrude(16, scale=3/30) square(30, center=true);
             }
             cylinder(d=7, h=8);
-            linear_extrude(6, convexity=10) gear(10);
+            linear_extrude(6, convexity=10) gear(14);
             cylinder(d=d_outer(10), h=1);
         }
         cylinder(d=3, h=4);
@@ -95,17 +95,17 @@ module weight_axle(d=5) {
 }
 
 module last_gear() {
-    wheel_and_pinion(50, 10);
+    wheel_and_pinion(46, 15);
 }
 
 module middle_gear() {
-    wheel_and_pinion(60, 10);
+    wheel_and_pinion(55, 17);
 }
 
 module weight_wheel() {
     difference() {
         union() {
-            linear_extrude(2) gear(75, d_inner=25);
+            linear_extrude(2) gear(68, d_inner=25);
             cylinder(d=25, h=6);
         }
         linear_extrude(h=30, center=true)
@@ -286,9 +286,5 @@ module demo2() {
     color("red") front_plate();
 }
 
-front_plate();
-/*
-axle();
-translate([45,0,0]) last_gear();
-translate([-20,45,0]) middle_gear();
-*/
+
+weight_axle(10);
